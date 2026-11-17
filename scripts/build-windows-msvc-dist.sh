@@ -15,6 +15,7 @@
 # Environment:
 #   OHM_BUILD_JOBS          bootstrap job count (default: every logical CPU)
 #   OHM_REPLACE_TOOLCHAIN=1 unlink and replace an existing installation
+#   OHM_BUILD_DIRECTORY     x.py build directory (default: WORK_DIRECTORY/build)
 #   PYTHON                  Python 3 interpreter (default: python)
 set -euo pipefail
 unset CDPATH
@@ -82,7 +83,8 @@ if [[ "$cargo_base_revision" != "$(json "$manifest" sources.cargo.revision)" ]];
 fi
 
 rust="$work/src/rust"
-build="$work/build"
+mkdir -p -- "${OHM_BUILD_DIRECTORY:-$work/build}"
+build="$(cd -P -- "${OHM_BUILD_DIRECTORY:-$work/build}" && pwd)"
 prefix="$work/toolchains/$toolchain"
 
 # Check out REVISION into DIRECTORY, reusing an existing clean checkout. The
