@@ -52,6 +52,13 @@ Every other Ohm default is unchanged, including public API hashes, check/build
 stage sharing, Headstart, early integration tests, and the compiler-side
 optimizations.
 
+The branch also treats an empty `RUSTC_WRAPPER` or `RUSTC_WORKSPACE_WRAPPER`
+(environment or `build.rustc-*wrapper` config) as absent. Cargo already runs
+rustc directly in that case, but Ohm's wrapper checks saw a wrapper and turned
+off stage sharing and built-dependency reuse for workspace members. A non-empty
+wrapper (for example a compiler cache) still disables the Ohm paths that keep
+ordinary compilation under a wrapper.
+
 ## Build
 
 From Git Bash, with rustup, Git, Python 3, and the Visual Studio C++ build tools:
