@@ -15,8 +15,9 @@ host = ["x86_64-pc-windows-msvc"]
 # Textil's rust-toolchain.toml installs the bare Wasm standard library.
 target = ["x86_64-pc-windows-msvc", "wasm32-unknown-unknown"]
 locked-deps = true
-# The build script initializes the submodules bootstrap needs (library/backtrace
-# and src/llvm-project) and checks out Cargo, Clippy, and rustfmt itself.
+# The build script initializes the submodules bootstrap needs (library/backtrace,
+# src/llvm-project, and the books whose licenses the rustc archive records) and
+# checks out Cargo, Clippy, and rustfmt itself.
 submodules = false
 docs = false
 extended = true
