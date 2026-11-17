@@ -10,7 +10,7 @@
   "cargo": {
     "repository": "https://github.com/yonenki/ohm-cargo",
     "branch": "textil/windows-msvc",
-    "revision": "22a1c38c1b073d12b6d427edb057fb32bf5fda59",
+    "revision": "c826bfd30e0f0ca2c6b2b050f0fe0078dea90f32",
     "base_revision": "056994fd40811b95057989434483f02b81db069a"
   },
   "llvm": {
