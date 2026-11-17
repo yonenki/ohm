@@ -3,9 +3,9 @@
 #
 # Run from Git Bash on a Windows host with rustup, Git, Python 3, and the Visual
 # Studio C++ build tools. The sources come from release/windows-msvc/sources.json:
-# Rust, Clippy, and rustfmt at the base manifest's revisions, and Cargo at the
-# Windows branch that descends from the base manifest's Cargo revision. LLVM is
-# the pinned Ohm LLVM, built from source (see docs/windows-msvc.md).
+# Clippy and rustfmt at the base manifest's revisions, and Rust, Cargo, and the
+# Ohm LLVM at Windows branches that descend from the pinned revisions. LLVM is
+# built from source (see docs/windows-msvc.md).
 #
 #   build-windows-msvc-dist.sh [--prepare-only] WORK_DIRECTORY
 #
@@ -70,8 +70,12 @@ print(value)' "$1" "$2"
 
 manifest="$coordinator/$(json "$overlay" base_manifest)"
 toolchain="$(json "$overlay" toolchain_name)"
-rust_repository="$(json "$manifest" sources.rust.repository)"
-rust_revision="$(json "$manifest" sources.rust.revision)"
+rust_repository="$(json "$overlay" rust.repository)"
+rust_revision="$(json "$overlay" rust.revision)"
+if [[ "$(json "$overlay" rust.base_revision)" != "$(json "$manifest" sources.rust.revision)" ]]; then
+  echo "the Windows Rust branch must descend from the base manifest's Rust revision" >&2
+  exit 1
+fi
 clippy_repository="$(json "$manifest" sources.clippy.repository)"
 clippy_revision="$(json "$manifest" sources.clippy.revision)"
 rustfmt_repository="$(json "$manifest" sources.rustfmt.repository)"
@@ -121,6 +125,10 @@ checkout() {
 
 # The Rust checkout keeps full history (without blobs) like the release build.
 checkout "$rust" "$rust_repository" "$rust_revision" --filter=blob:none
+if ! git -C "$rust" merge-base --is-ancestor "$(json "$overlay" rust.base_revision)" HEAD; then
+  echo "Rust $rust_revision does not descend from the base manifest's Rust revision" >&2
+  exit 1
+fi
 git -C "$rust" -c core.longpaths=true submodule update --init --depth 1 -- library/backtrace \
   src/doc/book src/doc/edition-guide src/doc/embedded-book src/doc/nomicon src/doc/reference \
   src/doc/rust-by-example src/tools/rustc-perf

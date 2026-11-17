@@ -9,7 +9,9 @@ still rejects the target.
 ## Sources
 
 `release/windows-msvc/sources.json` names the base manifest and the toolchain
-name. Rust, Clippy, and rustfmt come from the base manifest. Cargo comes from a
+name. Clippy and rustfmt come from the base manifest. Rust comes from a branch
+that must descend from the base manifest's Rust revision; it fixes
+`generate-copyright` for a `CARGO_HOME` that contains the source tree. Cargo comes from a
 branch that must descend from the base manifest's Cargo revision; it carries the
 Windows defaults described below.
 LLVM comes from a branch that must descend from the Rust tree's

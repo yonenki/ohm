@@ -1,6 +1,12 @@
 {
   "base_manifest": "toolchains/1.99.0/34.json",
   "toolchain_name": "ohm-1.99.0-34-textil",
+  "rust": {
+    "repository": "https://github.com/yonenki/ohm-rust",
+    "branch": "textil/windows-msvc",
+    "revision": "9a5c28b50511895de197b561199b498265d35357",
+    "base_revision": "483c1b8aeed63be9431dc906e6b790f0dbbf809a"
+  },
   "cargo": {
     "repository": "https://github.com/yonenki/ohm-cargo",
     "branch": "textil/windows-msvc",
