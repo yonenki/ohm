@@ -49,6 +49,9 @@ download-ci-llvm = false
 # Textil compiles only for x86_64-pc-windows-msvc and wasm32-unknown-unknown.
 targets = "X86;WebAssembly"
 experimental-targets = ""
+# LLVM's DIA (PDB reader) support needs ATL, which the C++ build tools omit by
+# default; rustc does not use it.
+build-config = { LLVM_ENABLE_DIA_SDK = "OFF" }
 
 [target.wasm32-unknown-unknown]
 profiler = false
