@@ -226,6 +226,7 @@ if [[ -e "$prefix" ]]; then
   rm -rf -- "$prefix"
 fi
 
+mkdir -p -- "$work/toolchains"
 staging="$(mktemp -d "$work/toolchains/.install.XXXXXX")"
 trap 'rm -rf -- "$staging"' EXIT
 install_component() {
@@ -265,7 +266,6 @@ json.dump({
 }, open(sys.argv[1], "w", encoding="utf-8"), indent=2)
 PROVENANCE
 
-mkdir -p -- "$(dirname -- "$prefix")"
 mv -- "$staging/prefix" "$prefix"
 rustup toolchain link "$toolchain" "$(cygpath -w "$prefix")"
 
