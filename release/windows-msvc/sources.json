@@ -1,0 +1,10 @@
+{
+  "base_manifest": "toolchains/1.99.0/34.json",
+  "toolchain_name": "ohm-1.99.0-34-textil",
+  "cargo": {
+    "repository": "https://github.com/yonenki/ohm-cargo",
+    "branch": "textil/windows-msvc",
+    "revision": "9ce3454243688887b76af52197dcebaca311ea82",
+    "base_revision": "056994fd40811b95057989434483f02b81db069a"
+  }
+}

@@ -18,6 +18,10 @@ bootstrap_config="$4"
 case "$target" in
   aarch64-apple-darwin) use_bolt=false ;;
   x86_64-unknown-linux-gnu) use_bolt=true ;;
+  x86_64-pc-windows-msvc)
+    echo 'Windows has no optimized (PGO) release pipeline; use scripts/build-windows-msvc-dist.sh' >&2
+    exit 1
+    ;;
   *)
     echo "unsupported optimized release target: $target" >&2
     exit 1

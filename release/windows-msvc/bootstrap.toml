@@ -1,0 +1,55 @@
+# Build an Ohm toolchain for local development on x86_64-pc-windows-msvc.
+#
+# This is not a release configuration: it has no PGO, BOLT, or bundled Wild,
+# and it uses Rust's CI-built LLVM instead of the Ohm LLVM fork. The Rust
+# wrapper detects every Ohm LLVM interface with `__has_include` or a
+# `LLVM_OHM_*` macro and keeps the ordinary code path when it is absent.
+# scripts/build-windows-msvc-dist.sh replaces the description below.
+change-id = "ignore"
+profile = "dist"
+
+[build]
+description = "Ohm"
+build = "x86_64-pc-windows-msvc"
+host = ["x86_64-pc-windows-msvc"]
+# Textil's rust-toolchain.toml installs the bare Wasm standard library.
+target = ["x86_64-pc-windows-msvc", "wasm32-unknown-unknown"]
+locked-deps = true
+# The build script initializes the only submodule bootstrap needs
+# (library/backtrace) and checks out Cargo, Clippy, and rustfmt itself.
+submodules = false
+docs = false
+extended = true
+tools = ["cargo", "clippy", "rustdoc", "rustfmt", "rust-analyzer-proc-macro-srv", "src"]
+cargo-native-static = true
+# compiler-rt's profiler runtime needs the LLVM sources; no PGO is trained here.
+profiler = false
+
+# Package Cargo so selecting the toolchain activates the Ohm workflow.
+[build.tool.cargo]
+features = ["ohm-defaults"]
+
+[rust]
+# Ohm exposes its build acceleration through unstable interfaces.
+channel = "dev"
+omit-git-hash = false
+lld = true
+# The dist profile enables this NVPTX linker; Textil never targets NVPTX.
+llvm-bitcode-linker = false
+# Matches Rust's dist-x86_64-msvc job (it sets codegen-units=1 and keeps the
+# default thin-local LTO). jemalloc does not support MSVC.
+codegen-units = 1
+codegen-units-std = 1
+# Ohm's Unix-only paths are behind cfg guards that no CI lane compiles on
+# Windows; an unused-item warning there must not abort a multi-hour build.
+deny-warnings = false
+
+[llvm]
+download-ci-llvm = true
+
+[target.wasm32-unknown-unknown]
+profiler = false
+
+[dist]
+compression-formats = ["gz"]
+compression-profile = "fast"
