@@ -5,7 +5,7 @@
 # Studio C++ build tools. The sources come from release/windows-msvc/sources.json:
 # Rust, Clippy, and rustfmt at the base manifest's revisions, and Cargo at the
 # Windows branch that descends from the base manifest's Cargo revision. LLVM is
-# Rust's CI build (see docs/windows-msvc.md).
+# the pinned Ohm LLVM, built from source (see docs/windows-msvc.md).
 #
 #   build-windows-msvc-dist.sh [--prepare-only] WORK_DIRECTORY
 #
@@ -45,7 +45,9 @@ case "$(uname -s)" in
 esac
 
 python="${PYTHON:-python}"
-for tool in git rustup "$python"; do
+# CMake builds LLVM with the MSVC toolset from a Visual Studio developer
+# environment (vcvars64.bat), which also provides cl.exe on PATH.
+for tool in git rustup cmake ninja cl "$python"; do
   command -v "$tool" >/dev/null || {
     echo "required tool not found: $tool" >&2
     exit 1
@@ -117,7 +119,7 @@ checkout() {
 # Bootstrap selects the CI LLVM from the newest upstream merge commit in the
 # history, so the Rust checkout keeps full history (without blobs).
 checkout "$rust" "$rust_repository" "$rust_revision" --filter=blob:none
-git -C "$rust" -c core.longpaths=true submodule update --init --depth 1 -- library/backtrace
+git -C "$rust" -c core.longpaths=true submodule update --init --depth 1 -- library/backtrace src/llvm-project
 
 # Clippy and rustfmt are subtrees of the Rust tree; replace them with the pinned
 # Ohm repositories exactly as the release workflow does.
@@ -223,7 +225,6 @@ for component in "rustc-*-$target" "rust-std-*-$target" 'rust-std-*-wasm32-unkno
   install_component "$component"
 done
 
-llvm_stamp="$build/$target/ci-llvm/.llvm-stamp"
 "$python" - "$staging/prefix/ohm-provenance.json" <<PROVENANCE
 import json, sys
 json.dump({
@@ -236,7 +237,7 @@ json.dump({
         "cargo": "$cargo_revision",
         "clippy": "$clippy_revision",
         "rustfmt": "$rustfmt_revision",
-        "llvm": "rust-ci:$(tr -d '\r\n' < "$llvm_stamp" 2>/dev/null || echo unknown)",
+        "llvm": "$(git -C "$rust/src/llvm-project" rev-parse HEAD)",
     },
 }, open(sys.argv[1], "w", encoding="utf-8"), indent=2)
 PROVENANCE

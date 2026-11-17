@@ -1,10 +1,10 @@
 # Build an Ohm toolchain for local development on x86_64-pc-windows-msvc.
 #
-# This is not a release configuration: it has no PGO, BOLT, or bundled Wild,
-# and it uses Rust's CI-built LLVM instead of the Ohm LLVM fork. The Rust
-# wrapper detects every Ohm LLVM interface with `__has_include` or a
-# `LLVM_OHM_*` macro and keeps the ordinary code path when it is absent.
-# scripts/build-windows-msvc-dist.sh replaces the description below.
+# This is not a release configuration: it has no PGO, BOLT, or bundled Wild.
+# LLVM is the pinned Ohm LLVM fork built from source with the local MSVC
+# toolset. Rust's CI LLVM for this host is built against a newer MSVC STL
+# (it references __std_unique_4 and friends), so it does not link with an
+# older toolset. scripts/build-windows-msvc-dist.sh replaces the description.
 change-id = "ignore"
 profile = "dist"
 
@@ -15,8 +15,8 @@ host = ["x86_64-pc-windows-msvc"]
 # Textil's rust-toolchain.toml installs the bare Wasm standard library.
 target = ["x86_64-pc-windows-msvc", "wasm32-unknown-unknown"]
 locked-deps = true
-# The build script initializes the only submodule bootstrap needs
-# (library/backtrace) and checks out Cargo, Clippy, and rustfmt itself.
+# The build script initializes the submodules bootstrap needs (library/backtrace
+# and src/llvm-project) and checks out Cargo, Clippy, and rustfmt itself.
 submodules = false
 docs = false
 extended = true
@@ -45,7 +45,10 @@ codegen-units-std = 1
 deny-warnings = false
 
 [llvm]
-download-ci-llvm = true
+download-ci-llvm = false
+# Textil compiles only for x86_64-pc-windows-msvc and wasm32-unknown-unknown.
+targets = "X86;WebAssembly"
+experimental-targets = ""
 
 [target.wasm32-unknown-unknown]
 profiler = false

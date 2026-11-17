@@ -15,26 +15,19 @@ Windows defaults described below.
 
 ## LLVM
 
-The build uses Rust's CI LLVM (`download-ci-llvm = true`) instead of the Ohm
-LLVM fork:
+The build compiles the pinned Ohm LLVM (the Rust tree's `src/llvm-project`
+gitlink) from source with the local MSVC toolset, limited to the `X86` and
+`WebAssembly` targets.
 
-- Ohm Rust's `src/llvm-project` gitlink points at Ohm LLVM, which is Rust's own
-  LLVM branch plus Ohm commits. Bootstrap treats that gitlink as a local change
-  and downloads the CI LLVM of the newest upstream merge commit that touched
-  LLVM. For 1.99.0-34 that is the LLVM revision Ohm LLVM is based on, and Rust CI
-  publishes `rust-dev` for `x86_64-pc-windows-msvc`.
-- The Rust LLVM wrapper detects every Ohm LLVM interface through
-  `__has_include` or an `LLVM_OHM_*` macro and otherwise keeps the upstream
-  code path. The caller-location and early-object hooks are Linux-only anyway.
-- Lost with CI LLVM: checked object/DWARF line reuse (ELF and Linux-only on the
-  Rust side), the closed optimizer context for the ThinLTO cache (Linux-only in
-  Cargo), DWARF FastISel invoke lowering (MSVC uses SEH), and the deferred O1
-  local simplification in Ohm LLVM, which is likely target-independent.
-- Bootstrap needs the Rust checkout's commit history to find that upstream
-  commit; the script fetches it without blobs.
-
-Building Ohm LLVM from source on MSVC is untested and would add a CMake/Ninja
-LLVM build.
+- Rust's CI LLVM for `x86_64-pc-windows-msvc` cannot be used with an MSVC 14.44
+  (Visual Studio 2022) toolset: its static libraries reference vectorized STL
+  helpers such as `__std_unique_4` and `__std_max_element_4i`, which first ship
+  with MSVC 14.50, so linking `rustc_driver` fails.
+- Ohm LLVM's platform-specific additions (the checked-object cache, source
+  snapshots) are guarded by `__linux__`; the Rust wrapper detects each Ohm LLVM
+  interface through `__has_include` or an `LLVM_OHM_*` macro.
+- Run the script from a Visual Studio developer environment (`vcvars64.bat`) so
+  CMake and Ninja find `cl.exe`, its headers, and its libraries.
 
 ## Cargo defaults on Windows
 
