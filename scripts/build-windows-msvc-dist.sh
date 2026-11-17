@@ -123,7 +123,7 @@ checkout() {
 checkout "$rust" "$rust_repository" "$rust_revision" --filter=blob:none
 git -C "$rust" -c core.longpaths=true submodule update --init --depth 1 -- library/backtrace \
   src/doc/book src/doc/edition-guide src/doc/embedded-book src/doc/nomicon src/doc/reference \
-  src/doc/rust-by-example
+  src/doc/rust-by-example src/tools/rustc-perf
 read -r _ _ pinned_llvm _ <<< "$(git -C "$rust" ls-tree HEAD -- src/llvm-project)"
 if [[ "$pinned_llvm" != "$llvm_base_revision" ]]; then
   echo "the Windows LLVM branch must descend from the Rust tree's LLVM gitlink $pinned_llvm" >&2

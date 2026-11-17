@@ -16,8 +16,8 @@ host = ["x86_64-pc-windows-msvc"]
 target = ["x86_64-pc-windows-msvc", "wasm32-unknown-unknown"]
 locked-deps = true
 # The build script initializes the submodules bootstrap needs (library/backtrace,
-# src/llvm-project, and the books whose licenses the rustc archive records) and
-# checks out Cargo, Clippy, and rustfmt itself.
+# src/llvm-project, and the books and rustc-perf whose licenses the rustc archive
+# records) and checks out Cargo, Clippy, and rustfmt itself.
 submodules = false
 docs = false
 extended = true
