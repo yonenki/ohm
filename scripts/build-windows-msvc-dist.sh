@@ -83,6 +83,9 @@ if [[ "$cargo_base_revision" != "$(json "$manifest" sources.cargo.revision)" ]];
   echo "the Windows Cargo branch must descend from the base manifest's Cargo revision" >&2
   exit 1
 fi
+llvm_repository="$(json "$overlay" llvm.repository)"
+llvm_revision="$(json "$overlay" llvm.revision)"
+llvm_base_revision="$(json "$overlay" llvm.base_revision)"
 
 rust="$work/src/rust"
 mkdir -p -- "${OHM_BUILD_DIRECTORY:-$work/build}"
@@ -116,10 +119,20 @@ checkout() {
   echo "$directory: $(git -C "$directory" rev-parse HEAD)"
 }
 
-# Bootstrap selects the CI LLVM from the newest upstream merge commit in the
-# history, so the Rust checkout keeps full history (without blobs).
+# The Rust checkout keeps full history (without blobs) like the release build.
 checkout "$rust" "$rust_repository" "$rust_revision" --filter=blob:none
-git -C "$rust" -c core.longpaths=true submodule update --init --depth 1 -- library/backtrace src/llvm-project
+git -C "$rust" -c core.longpaths=true submodule update --init --depth 1 -- library/backtrace
+read -r _ _ pinned_llvm _ <<< "$(git -C "$rust" ls-tree HEAD -- src/llvm-project)"
+if [[ "$pinned_llvm" != "$llvm_base_revision" ]]; then
+  echo "the Windows LLVM branch must descend from the Rust tree's LLVM gitlink $pinned_llvm" >&2
+  exit 1
+fi
+# The Windows LLVM branch carries MSVC fixes on top of the gitlink revision.
+checkout "$rust/src/llvm-project" "$llvm_repository" "$llvm_revision" --depth=2
+if ! git -C "$rust/src/llvm-project" merge-base --is-ancestor "$llvm_base_revision" HEAD; then
+  echo "LLVM $llvm_revision does not descend from $llvm_base_revision" >&2
+  exit 1
+fi
 
 # Clippy and rustfmt are subtrees of the Rust tree; replace them with the pinned
 # Ohm repositories exactly as the release workflow does.

@@ -12,6 +12,8 @@ still rejects the target.
 name. Rust, Clippy, and rustfmt come from the base manifest. Cargo comes from a
 branch that must descend from the base manifest's Cargo revision; it carries the
 Windows defaults described below.
+LLVM comes from a branch that must descend from the Rust tree's
+`src/llvm-project` gitlink; it carries the MSVC compile fixes.
 
 ## LLVM
 

@@ -6,5 +6,11 @@
     "branch": "textil/windows-msvc",
     "revision": "22a1c38c1b073d12b6d427edb057fb32bf5fda59",
     "base_revision": "056994fd40811b95057989434483f02b81db069a"
+  },
+  "llvm": {
+    "repository": "https://github.com/yonenki/ohm-llvm",
+    "branch": "textil/windows-msvc",
+    "revision": "ce837f8352162d3e62e47a529115f0b8deb36d4d",
+    "base_revision": "9fcfb2a397c11b23c0dfb5b9af995ca1394d99dc"
   }
 }
