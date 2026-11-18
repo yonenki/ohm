@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build, install, and register an Ohm toolchain for x86_64-pc-windows-msvc.
+# Build, install, register, and archive an Ohm toolchain for x86_64-pc-windows-msvc.
 #
 # Run from Git Bash on a Windows host with rustup, Git, Python 3, and the Visual
 # Studio C++ build tools. The sources come from release/windows-msvc/sources.json:
@@ -16,6 +16,7 @@
 #   OHM_BUILD_JOBS          bootstrap job count (default: every logical CPU)
 #   OHM_REPLACE_TOOLCHAIN=1 unlink and replace an existing installation
 #   OHM_BUILD_DIRECTORY     x.py build directory (default: WORK_DIRECTORY/build)
+#   OHM_DIST_DIRECTORY      toolchain archive directory (default: WORK_DIRECTORY/dist)
 #   PYTHON                  Python 3 interpreter (default: python)
 set -euo pipefail
 unset CDPATH
@@ -69,7 +70,18 @@ print(value)' "$1" "$2"
 }
 
 manifest="$coordinator/$(json "$overlay" base_manifest)"
-toolchain="$(json "$overlay" toolchain_name)"
+base_toolchain="$(json "$overlay" toolchain_name)"
+# The installed name carries a content identity: the committed coordinator blobs
+# that determine the toolchain. Tools that cache compiler identity per path (for
+# example a rustc wrapper) then see a new path whenever the content changes.
+identity_paths=(release/windows-msvc/sources.json "$(json "$overlay" base_manifest)"
+  release/windows-msvc/bootstrap.toml scripts/build-windows-msvc-dist.sh)
+if ! git -C "$coordinator" diff --quiet HEAD -- "${identity_paths[@]}"; then
+  echo "commit the toolchain inputs before building: ${identity_paths[*]}" >&2
+  exit 1
+fi
+identity="$(git -C "$coordinator" rev-parse "${identity_paths[@]/#/HEAD:}" | sha256sum | cut -c1-12)"
+toolchain="$base_toolchain-$identity"
 rust_repository="$(json "$overlay" rust.repository)"
 rust_revision="$(json "$overlay" rust.revision)"
 if [[ "$(json "$overlay" rust.base_revision)" != "$(json "$manifest" sources.rust.revision)" ]]; then
@@ -162,7 +174,7 @@ fi
 
 mkdir -p -- "$build" "$work/logs"
 config="$build/ohm-windows-bootstrap.toml"
-if ! awk -v toolchain="$toolchain" '
+if ! awk -v toolchain="$base_toolchain" '
   /^description[[:space:]]*=[[:space:]]*"Ohm"[[:space:]]*$/ {
     print "description = \"" toolchain "\""
     replacements++
@@ -281,3 +293,12 @@ cargo "+$toolchain" -V
 cargo "+$toolchain" clippy -V
 rustfmt "+$toolchain" -V
 echo "registered $toolchain at $prefix"
+
+# One archive with a top-level <toolchain> directory is the distributable form.
+mkdir -p -- "${OHM_DIST_DIRECTORY:-$work/dist}"
+dist_directory="$(cd -P -- "${OHM_DIST_DIRECTORY:-$work/dist}" && pwd)"
+archive="$toolchain-$target.tar.gz"
+tar -czf "$dist_directory/$archive" -C "$work/toolchains" "$toolchain"
+(cd -- "$dist_directory" && sha256sum "$archive" >"$archive.sha256")
+echo "archived $dist_directory/$archive"
+cat -- "$dist_directory/$archive.sha256"

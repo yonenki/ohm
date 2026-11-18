@@ -67,7 +67,16 @@ scripts/build-windows-msvc-dist.sh WORK_DIRECTORY                 # build, insta
 
 The script runs `x.py dist` for `rustc`, `rust-std` (host and
 `wasm32-unknown-unknown`), `cargo`, `clippy`, `rustfmt`, and `rust-src`,
-installs the archives into `WORK_DIRECTORY/toolchains/<name>`, and registers that
-directory with `rustup toolchain link`. `OHM_BUILD_JOBS` limits parallelism.
+installs the archives into `WORK_DIRECTORY/toolchains/<name>`, registers that
+directory with `rustup toolchain link`, and packs it as one archive,
+`<name>-x86_64-pc-windows-msvc.tar.gz` with a `.sha256` sidecar, in
+`OHM_DIST_DIRECTORY` (default `WORK_DIRECTORY/dist`). `OHM_BUILD_JOBS` limits parallelism.
+
+`<name>` is `toolchain_name` from `sources.json` followed by a content identity:
+twelve hex digits of a hash over the committed blobs of `sources.json`, the base
+manifest, `bootstrap.toml`, and the build script. The script refuses uncommitted
+changes to those files, so any change to the toolchain's inputs changes its name
+and installation path. Tools that cache the compiler's identity per path, such as
+a rustc wrapper, never reuse a stale entry. `rustc -V` shows only `toolchain_name`.
 `WORK_DIRECTORY` doubles as `CARGO_HOME` for bootstrap: Cargo stops its
 workspace search there, so the build works inside another Cargo workspace.
