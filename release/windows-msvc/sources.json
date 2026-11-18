@@ -4,7 +4,7 @@
   "rust": {
     "repository": "https://github.com/yonenki/ohm-rust",
     "branch": "textil/windows-msvc",
-    "revision": "9a5c28b50511895de197b561199b498265d35357",
+    "revision": "7fa7af87fb870e360ba64f6dcf0390c7c54ea926",
     "base_revision": "483c1b8aeed63be9431dc906e6b790f0dbbf809a"
   },
   "cargo": {
